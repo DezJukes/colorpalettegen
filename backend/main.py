@@ -4,7 +4,7 @@ from PIL import Image
 import io
 import base64
 
-from kmeans_lab import kmeans_lab, quantize_image_lab
+from sop1enhance import kmeans_lab, quantize_image_lab
 
 app = FastAPI()
 
