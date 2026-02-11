@@ -4,7 +4,7 @@ from PIL import Image
 import io
 import base64
 
-from sop1enhance import kmeans_lab, quantize_image_lab
+from sop1enhance import kmeans_lab, quantize_image_lab,resize_image
 
 app = FastAPI()
 
@@ -23,7 +23,7 @@ async def generate_palette(
 ):
     img_bytes = await image.read()
     img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-
+    img = resize_image(img)
     pixels = list(img.getdata())
 
     palette_rgb, centroids_lab, final_mse = kmeans_lab(

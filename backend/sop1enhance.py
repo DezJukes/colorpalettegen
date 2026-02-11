@@ -2,6 +2,14 @@ from PIL import Image
 import numpy as np
 from skimage.color import rgb2lab, lab2rgb
 
+def resize_image(img, max_size=512):
+    w, h = img.size
+    if w > max_size or h > max_size:
+        scale = min(max_size / w, max_size / h)
+        new_size = (int(w * scale), int(h * scale))
+        return img.resize(new_size, Image.LANCZOS)
+    return img
+
 def rgb_list_to_lab_array(pixels):
     arr = np.array(pixels, dtype=np.float32) / 255.0
     return rgb2lab(arr.reshape(-1, 1, 3)).reshape(-1, 3)
@@ -17,21 +25,15 @@ def kmeans_lab(pixels_rgb, K, max_iter=10, seed=1):
     mse_history = []
 
     for _ in range(max_iter):
-        clusters = [[] for _ in range(K)]
-        mse = 0.0
-
-        for p in pixels_lab:
-            dists = np.sum((centroids - p) ** 2, axis=1)
-            idx = int(np.argmin(dists))
-            clusters[idx].append(p)
-            mse += dists[idx]
-
-        mse /= N
+        dists = np.sum((pixels_lab[:, None, :] - centroids[None, :, :]) ** 2, axis=2)
+        labels = np.argmin(dists, axis=1)
+        mse = np.mean(np.min(dists, axis=1))
         mse_history.append(mse)
 
         for k in range(K):
-            if clusters[k]:
-                centroids[k] = np.mean(clusters[k], axis=0)
+            members = pixels_lab[labels == k]
+            if len(members) > 0:
+                centroids[k] = np.mean(members, axis=0)
 
     rgb_centroids = lab2rgb(centroids.reshape(-1, 1, 3)).reshape(-1, 3)
     rgb_centroids = np.clip(rgb_centroids * 255, 0, 255).astype(np.uint8)
@@ -43,10 +45,12 @@ def quantize_image_lab(img, centroids_lab, palette_rgb):
     arr_rgb = np.array(img, dtype=np.float32) / 255.0
     lab_img = rgb2lab(arr_rgb)
 
-    out = np.zeros_like(arr_rgb)
-    for y in range(arr_rgb.shape[0]):
-        for x in range(arr_rgb.shape[1]):
-            dists = np.sum((centroids_lab - lab_img[y, x]) ** 2, axis=1)
-            out[y, x] = np.array(palette_rgb[np.argmin(dists)]) / 255.0
+    h, w, _ = lab_img.shape
+    flat_lab = lab_img.reshape(-1, 3)
+    dists = np.sum((flat_lab[:, None, :] - centroids_lab[None, :, :]) ** 2, axis=2)
+    labels = np.argmin(dists, axis=1)
+    palette_arr = np.array(palette_rgb, dtype=np.float32) / 255.0
+    quantized_flat = palette_arr[labels]
+    quantized_img = quantized_flat.reshape(h, w, 3)
 
-    return Image.fromarray(np.clip(out * 255, 0, 255).astype(np.uint8))
+    return Image.fromarray(np.clip(quantized_img * 255, 0, 255).astype(np.uint8))
