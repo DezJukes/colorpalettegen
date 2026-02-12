@@ -12,6 +12,7 @@ export default function PaletteGenerator() {
   const [method, setMethod] = useState("kmeans");
   const [numColors, setNumColors] = useState(5);
   const [palette, setPalette] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: "" });
 
   // Handle image selection
   const handleImageChange = (e) => {
@@ -50,7 +51,10 @@ export default function PaletteGenerator() {
 
   const copyHex = async (hex) => {
     try {
-      await navigator.clipboard.writeText(hex);
+      setToast({ show: true, message: `Copied ${hex} to clipboard!` });
+      setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 1500);
     } catch (e) {
       console.error(e);
     }
@@ -65,6 +69,15 @@ export default function PaletteGenerator() {
 
   return (
     <div style={styles.page}>
+      {/* Toast notification */}
+      <div
+        style={{
+          ...styles.toast,
+          ...(toast.show ? styles.toastVisible : styles.toastHidden),
+        }}>
+        {toast.message}
+      </div>
+
       {/* NAVBAR */}
       <header style={styles.nav}>
         <div style={styles.navInner} className="insnap-navinner">
@@ -169,8 +182,8 @@ export default function PaletteGenerator() {
                 onChange={(e) => setMethod(e.target.value)}
                 style={styles.select}
               >
-                <option value="kmeans">Fast K-Means Original</option>
-                <option value="median_cut">Fast K-Means Enhanced</option>
+                <option value="kmeans">Fast K-Means Enhanced</option>
+                <option value="median_cut">Fast K-Means Original</option>
               </select>
             </div>
           </section>
@@ -207,7 +220,7 @@ export default function PaletteGenerator() {
             <div style={styles.swatches}>
               {palette.length ? (
                 palette.map((color, index) => (
-                  <button
+                  <button className="card"
                     key={index}
                     style={{ ...styles.swatch, backgroundColor: color }}
                     onClick={() => copyHex(color)}
@@ -255,8 +268,8 @@ export default function PaletteGenerator() {
               Algorithm:{" "}
               <b>
                 {method === "kmeans"
-                  ? "Fast K-Means"
-                  : "Fast K-Means (Enhanced)"}
+                  ? "Fast K-Means (Enhanced)"
+                  : "Fast K-Means"}
               </b>
             </span>
             <span style={styles.sep}>|</span>
@@ -362,6 +375,35 @@ const styles = {
       'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial',
     color: "#0F172A",
   },
+
+  toast: {
+  position: "fixed",
+  top: "24px",
+  left: "50%",
+  transform: "translate(-50%, -20px)",
+  background: "#2563EB",
+  color: "#fff",
+  padding: "12px 24px",
+  borderRadius: "12px",
+  fontWeight: 900,
+  fontSize: "15px",
+  zIndex: 9999,
+  boxShadow: "0 4px 24px rgba(37,99,235,0.18)",
+  opacity: 0,
+  pointerEvents: "none",
+  transition: "all 0.35s ease",
+},
+
+toastVisible: {
+  opacity: 1,
+  transform: "translate(-50%, 0px)",
+  pointerEvents: "auto",
+},
+
+toastHidden: {
+  opacity: 0,
+  transform: "translate(-50%, -20px)",
+},
 
   // NAV
   nav: {
