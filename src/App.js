@@ -51,6 +51,7 @@ export default function PaletteGenerator() {
 
   const copyHex = async (hex) => {
     try {
+      await navigator.clipboard.writeText(hex);
       setToast({ show: true, message: `Copied ${hex} to clipboard!` });
       setTimeout(() => {
       setToast((prev) => ({ ...prev, show: false }));
