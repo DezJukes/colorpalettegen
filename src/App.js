@@ -11,6 +11,7 @@ export default function PaletteGenerator() {
   const [preview, setPreview] = useState(null);
   const [method, setMethod] = useState("kmeans");
   const [numColors, setNumColors] = useState(5);
+  const [paletteMap, setPaletteMap] = useState({ kmeans: [], median_cut: [] });
   const [palette, setPalette] = useState([]);
   const [toast, setToast] = useState({ show: false, message: "" });
 
@@ -22,6 +23,13 @@ export default function PaletteGenerator() {
     setImage(file);
     setPreview(URL.createObjectURL(file));
     setPalette([]);
+    setPaletteMap({ kmeans: [], median_cut: [] });
+  };
+
+  const handleMethodChange = (e) => {
+    const newMethod = e.target.value;
+    setMethod(newMethod);
+    setPalette(paletteMap[newMethod] || []);
   };
 
   // Submit to backend
@@ -44,6 +52,10 @@ export default function PaletteGenerator() {
 
       const data = await response.json();
       setPalette(data.palette || []);
+      setPaletteMap((prev) => ({
+      ...prev,
+      [method]: data.palette || [],
+    }));
     } catch (error) {
       console.error("Error:", error);
     }
@@ -180,7 +192,7 @@ export default function PaletteGenerator() {
               <div style={styles.fieldLabel}>Algorithm</div>
               <select
                 value={method}
-                onChange={(e) => setMethod(e.target.value)}
+                onChange={handleMethodChange}
                 style={styles.select}
               >
                 <option value="kmeans">Fast K-Means Enhanced</option>
