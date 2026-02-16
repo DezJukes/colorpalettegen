@@ -99,13 +99,13 @@ export default function PaletteGenerator() {
           </div>
 
           <nav style={styles.links} className="insnap-links">
-            <a href="#generate" style={styles.link}>
+            <a className="navbar" href="#generate" style={styles.link}>
               Generate
             </a>
-            <a href="#how" style={styles.link}>
+            <a className="navbar" href="#how" style={styles.link}>
               How it works
             </a>
-            <a href="#about" style={styles.link}>
+            <a className="navbar" href="#about" style={styles.link}>
               About
             </a>
           </nav>
@@ -250,7 +250,7 @@ export default function PaletteGenerator() {
               )}
             </div>
 
-            <button style={styles.bigGenerate} onClick={generatePalette}>
+            <button className="card" style={styles.bigGenerate} onClick={generatePalette}>
               Generate Palette
             </button>
 
@@ -301,7 +301,7 @@ export default function PaletteGenerator() {
           <h2 style={styles.howTitle}>How It Works</h2>
 
           <div style={styles.howGrid} className="insnap-howgrid">
-            <div style={styles.howCard}>
+            <div className="card" style={styles.howCard}>
               <img src={uploadIcon} alt="Upload" style={styles.howIconImg} />
               <div style={styles.howCardTitle}>Upload Image</div>
               <div style={styles.howCardText}>

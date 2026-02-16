@@ -12,10 +12,29 @@ code {
     monospace;
 }
 
+.navbar {
+  transition: transform 0.3s ease-in-out;
+}
+
+.navbar:hover {
+  border-bottom: 1px solid black;
+  transform: scale(1.03);
+}
+
+.navbar:active {
+  transform: scale(0.9);
+}
+
+.card {
+  transition: transform 0.3s ease-in-out;
+}
+
 .card:hover {
-  transform : scale(1.1);
+  transform: scale(1.03);
 }
 
 .card:active {
   transform: scale(0.9);
 }
+
+
