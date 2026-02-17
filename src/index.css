@@ -37,4 +37,10 @@ code {
   transform: scale(0.9);
 }
 
+.about {
+  transition: transform 0.3s ease-in-out;
+}
 
+.about:hover {
+  transform: scale(1.03);
+}

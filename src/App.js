@@ -301,7 +301,7 @@ export default function PaletteGenerator() {
           <h2 style={styles.howTitle}>How It Works</h2>
 
           <div style={styles.howGrid} className="insnap-howgrid">
-            <div className="card" style={styles.howCard}>
+            <div className="about" style={styles.howCard}>
               <img src={uploadIcon} alt="Upload" style={styles.howIconImg} />
               <div style={styles.howCardTitle}>Upload Image</div>
               <div style={styles.howCardText}>
@@ -309,7 +309,7 @@ export default function PaletteGenerator() {
               </div>
             </div>
 
-            <div style={styles.howCard}>
+            <div className="about" style={styles.howCard}>
               <img src={clusterIcon} alt="Cluster" style={styles.howIconImg} />
               <div style={styles.howCardTitle}>Cluster Colors</div>
               <div style={styles.howCardText}>
@@ -317,7 +317,7 @@ export default function PaletteGenerator() {
               </div>
             </div>
 
-            <div style={styles.howCard}>
+            <div className="about" style={styles.howCard}>
               <img src={getIcon} alt="Get Palette" style={styles.howIconImg2} />
               <div style={styles.howCardTitle}>Get Palette + Export</div>
               <div style={styles.howCardText}>
