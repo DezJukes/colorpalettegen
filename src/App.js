@@ -80,6 +80,131 @@ export default function PaletteGenerator() {
 
   const hasPicked = !!image;
 
+  const hexToRgb = (hex) => {
+  const clean = hex.replace("#", "");
+  const bigint = parseInt(clean, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return { r, g, b };
+  };
+
+  const rgbToHsl = (r, g, b) => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h, s;
+  const l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) + 2;
+        break;
+      case b:
+        h = (r - g) + 4;
+        break;
+      default:
+        h = 0;
+    }
+
+    h /= 6;
+  }
+
+      return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100),
+      };
+    };
+
+  const exportPaletteImage = () => {
+  if (!palette.length) return;
+
+  const swatchSize = 140;
+  const padding = 40;
+  const infoHeight = 60;
+  const titleHeight = 80;
+  const columns = 3;
+
+  const rows = Math.ceil(palette.length / columns);
+
+  const width =
+    padding + columns * swatchSize + (columns - 1) * padding + padding;
+
+  const height =
+    titleHeight +
+    rows * (swatchSize + infoHeight) +
+    (rows - 1) * padding +
+    padding;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+
+  // Background
+  ctx.fillStyle = "#F6F7FB";
+  ctx.fillRect(0, 0, width, height);
+
+  // Title
+  ctx.fillStyle = "#0F172A";
+  ctx.font = "bold 36px sans-serif";
+  ctx.fillText("InSnap Color Palette", padding, 50);
+
+  palette.forEach((hex, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+
+    const x = padding + col * (swatchSize + padding);
+    const y =
+      titleHeight +
+      row * (swatchSize + infoHeight + padding);
+
+    const { r, g, b } = hexToRgb(hex);
+    const { h, s, l } = rgbToHsl(r, g, b);
+
+    // Color block
+    ctx.fillStyle = hex;
+    ctx.fillRect(x, y, swatchSize, swatchSize);
+
+    // Info background
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(x, y + swatchSize, swatchSize, infoHeight);
+
+    // Border
+    ctx.strokeStyle = "rgba(15,23,42,0.08)";
+    ctx.strokeRect(x, y, swatchSize, swatchSize + infoHeight);
+
+    // Text
+    ctx.fillStyle = "#0F172A";
+    ctx.font = "bold 14px sans-serif";
+
+    ctx.fillText(`HEX: ${hex.toUpperCase()}`, x + 10, y + swatchSize + 20);
+    ctx.fillText(`RGB: ${r}, ${g}, ${b}`, x + 10, y + swatchSize + 35);
+    ctx.fillText(`HSL: ${h}°, ${s}%, ${l}%`, x + 10, y + swatchSize + 50);
+  });
+
+    const link = document.createElement("a");
+    link.download = "insnap_palette.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+
+
   return (
     <div style={styles.page}>
       {/* Toast notification */}
@@ -149,7 +274,7 @@ export default function PaletteGenerator() {
             </label>
 
             <div style={styles.btnRow}>
-              <label style={{ ...styles.btn, ...styles.btnPrimary }}>
+              <label className="card" style={{ ...styles.btn, ...styles.btnPrimary }}>
                 <input
                   type="file"
                   accept="image/*"
@@ -159,7 +284,7 @@ export default function PaletteGenerator() {
                 Browse File
               </label>
 
-              <label style={{ ...styles.btn, ...styles.btnGhost }}>
+              <label className="card" style={{ ...styles.btn, ...styles.btnGhost }}>
                 <input
                   type="file"
                   accept="image/*"
@@ -188,9 +313,9 @@ export default function PaletteGenerator() {
               />
             </div>
 
-            <div style={styles.fieldRow} className="insnap-fieldrow">
+            <div style={styles.fieldRow}>
               <div style={styles.fieldLabel}>Algorithm</div>
-              <select
+              <select className="insnap-fieldrow"
                 value={method}
                 onChange={handleMethodChange}
                 style={styles.select}
@@ -263,7 +388,7 @@ export default function PaletteGenerator() {
               </button>
               <button
                 style={styles.actionBtn}
-                onClick={() => alert("Add export options later")}
+                onClick={exportPaletteImage}
               >
                 Export
               </button>

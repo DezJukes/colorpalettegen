@@ -44,3 +44,11 @@ code {
 .about:hover {
   transform: scale(1.03);
 }
+
+.insnap-fieldrow {
+  cursor: pointer;
+}
+
+.insnap-fieldrow:hover {
+  background-color: rgb(17, 63, 104);
+}
