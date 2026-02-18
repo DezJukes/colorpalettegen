@@ -14,6 +14,7 @@ export default function PaletteGenerator() {
   const [paletteMap, setPaletteMap] = useState({ kmeans: [], median_cut: [] });
   const [palette, setPalette] = useState([]);
   const [toast, setToast] = useState({ show: false, message: "" });
+  const baseURL = process.env.REACT_APP_BASE_URL;
 
   // Handle image selection
   const handleImageChange = (e) => {
@@ -45,7 +46,7 @@ export default function PaletteGenerator() {
     formData.append("num_colors", numColors);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/generate", {
+      const response = await fetch(`${baseURL}/generate`, {
         method: "POST",
         body: formData,
       });
