@@ -52,3 +52,12 @@ code {
 .insnap-fieldrow:hover {
   background-color: rgb(17, 63, 104);
 }
+
+button:disabled.card:hover,
+button:disabled.card:active {
+  transform: none !important;
+}
+
+button:disabled.card {
+  cursor: not-allowed;
+}

@@ -14,6 +14,7 @@ export default function PaletteGenerator() {
   const [paletteMap, setPaletteMap] = useState({ kmeans: [], median_cut: [] });
   const [palette, setPalette] = useState([]);
   const [toast, setToast] = useState({ show: false, message: "" });
+  const [isGenerating, setIsGenerating] = useState(false);
   const baseURL = process.env.REACT_APP_BASE_URL;
 
   // Handle image selection
@@ -35,10 +36,13 @@ export default function PaletteGenerator() {
 
   // Submit to backend
   const generatePalette = async () => {
-    if (!image) {
-      alert("Please upload or capture an image.");
+    if (!image || isGenerating){
+      alert("Please upload or capture an image."); 
       return;
     }
+
+    setIsGenerating(true);
+    setPalette([]);
 
     const formData = new FormData();
     formData.append("image", image);
@@ -59,6 +63,8 @@ export default function PaletteGenerator() {
     }));
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -371,13 +377,20 @@ export default function PaletteGenerator() {
                 ))
               ) : (
                 <div style={styles.emptyPalette}>
-                  {hasPicked ? "Click Generate Palette." : "Pick an image first."}
+                  {isGenerating ? "Extracting palette from image…" : hasPicked ? "Click Generate Palette." : "Pick an image first."}
                 </div>
               )}
             </div>
 
-            <button className="card" style={styles.bigGenerate} onClick={generatePalette}>
-              Generate Palette
+            <button className="card" 
+              style={{
+              ...styles.bigGenerate, 
+              opacity: isGenerating ? 0.7 : 1, 
+              cursor: isGenerating ? "not-allowed" : "pointer",
+            }} 
+              onClick={generatePalette} 
+              disabled={isGenerating}>
+              {isGenerating ? "Generating Palette..." : "Generate Palette"}
             </button>
 
             <div style={styles.actionsRow} className="insnap-actions">
@@ -750,7 +763,17 @@ toastHidden: {
     letterSpacing: "0.5px",
   },
 
-  emptyPalette: { color: "rgba(15,23,42,0.55)", fontWeight: 700 },
+  emptyPalette: {
+    gridColumn: "1 / -1",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    minHeight: "120px",
+    color: "rgba(15,23,42,0.55)",
+    fontWeight: 700,
+    padding: "10px",
+},
 
   bigGenerate: {
     marginTop: "6px",
