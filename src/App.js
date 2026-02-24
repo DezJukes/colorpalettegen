@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import logo from "./assets/InSnapLogo.png";
 import uploadIcon from "./assets/UploadImage.png";
 import dropIcon from "./assets/DropIcon.png";
@@ -15,6 +15,8 @@ export default function PaletteGenerator() {
   const [palette, setPalette] = useState([]);
   const [toast, setToast] = useState({ show: false, message: "" });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const baseURL = process.env.REACT_APP_BASE_URL;
 
   // Handle image selection
@@ -28,11 +30,11 @@ export default function PaletteGenerator() {
     setPaletteMap({ kmeans: [], median_cut: [] });
   };
 
-  const handleMethodChange = (e) => {
-    const newMethod = e.target.value;
-    setMethod(newMethod);
-    setPalette(paletteMap[newMethod] || []);
-  };
+  const selectMethod = (value) => {
+  setMethod(value);
+  setPalette(paletteMap[value] || []);
+  setDropdownOpen(false);
+};
 
   // Submit to backend
   const generatePalette = async () => {
@@ -80,10 +82,34 @@ export default function PaletteGenerator() {
     }
   };
 
+  const downloadPreviewImage = () => {
+    if (!preview) return;
+    const link = document.createElement("a");
+    link.href = preview;
+    link.download = "insnap_uploaded_image.png";
+    link.click();
+  };
+
   const copyAll = async () => {
     if (!palette.length) return;
     copyHex(palette.join(", "));
   };
+
+  useEffect(() => {
+  function handleClickOutside(event) {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target)
+    ) {
+      setDropdownOpen(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
   const hasPicked = !!image;
 
@@ -210,7 +236,13 @@ export default function PaletteGenerator() {
     link.click();
   };
 
+  const openPaper = () => {
+    window.open("/insnap-research-paper.pdf", "_blank", "noopener,noreferrer");
+  };
 
+  const openContact = () => {
+    window.open("mailto:insnap.help@gmail.com", "_blank");
+  };
 
   return (
     <div style={styles.page}>
@@ -311,25 +343,63 @@ export default function PaletteGenerator() {
             <div style={styles.fieldRowCol}>
               <div style={styles.fieldLabel}>Palette size: {numColors}</div>
               <input
+                className="slider"
                 type="range"
                 min="1"
                 max="10"
                 value={numColors}
                 onChange={(e) => setNumColors(Number(e.target.value))}
-                style={styles.range}
+                style={{
+                  ...styles.range,
+                  opacity: !hasPicked ? 0.6 : 1,
+                  cursor: !hasPicked ? "not-allowed" : "pointer",
+                }}
+                disabled={!hasPicked}
               />
             </div>
 
             <div style={styles.fieldRow}>
               <div style={styles.fieldLabel}>Algorithm</div>
-              <select className="insnap-fieldrow"
-                value={method}
-                onChange={handleMethodChange}
-                style={styles.select}
-              >
-                <option value="kmeans">Fast K-Means Enhanced</option>
-                <option value="median_cut">Fast K-Means Original</option>
-              </select>
+              <div ref={dropdownRef} style={styles.dropdownWrapper}>
+                <div
+                  style={{
+                    ...styles.dropdown,
+                    ...(dropdownOpen ? styles.dropdownActive : {}),
+                    opacity: !hasPicked ? 0.6 : 1,
+                    cursor: !hasPicked ? "not-allowed" : "pointer",
+                    pointerEvents: !hasPicked ? "none" : "auto",
+                  }}
+                  onClick={() => hasPicked && setDropdownOpen(!dropdownOpen)}
+                >
+                  {method === "kmeans"
+                    ? "Fast K-Means Enhanced"
+                    : "Fast K-Means Original"}
+
+                  <span style={styles.arrow}>
+                    {dropdownOpen ? "▲" : "▼"}
+                  </span>
+                </div>
+
+                {dropdownOpen && (
+                  <div style={styles.dropdownMenu}>
+                    <div
+                      style={styles.dropdownItem}
+                      className="insnap-dropdown-item"
+                      onClick={() => selectMethod("kmeans")}
+                    >
+                      Fast K-Means Enhanced
+                    </div>
+
+                    <div
+                      style={styles.dropdownItem}
+                      className="insnap-dropdown-item"
+                      onClick={() => selectMethod("median_cut")}
+                    >
+                      Fast K-Means Original
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
@@ -385,28 +455,45 @@ export default function PaletteGenerator() {
             <button className="card" 
               style={{
               ...styles.bigGenerate, 
-              opacity: isGenerating ? 0.7 : 1, 
-              cursor: isGenerating ? "not-allowed" : "pointer",
-            }} 
+                opacity: isGenerating || !hasPicked ? 0.7 : 1, 
+                cursor: isGenerating || !hasPicked ? "not-allowed" : "pointer",
+              }} 
               onClick={generatePalette} 
-              disabled={isGenerating}>
+              disabled={isGenerating || !hasPicked}>
               {isGenerating ? "Generating Palette..." : "Generate Palette"}
             </button>
 
             <div style={styles.actionsRow} className="insnap-actions">
               <button
-                style={styles.actionBtn}
-                onClick={() => alert("Add PNG export later")}
+                style={{
+                  ...styles.actionBtn,
+                  opacity: !hasPicked ? 0.6 : 1,
+                  cursor: isGenerating || !hasPicked ? "not-allowed" : "pointer",
+                }}
+                onClick={downloadPreviewImage}
+                disabled={isGenerating || !hasPicked}
               >
                 Download PNG
               </button>
               <button
-                style={styles.actionBtn}
+                style={{
+                  ...styles.actionBtn,
+                  opacity: !hasPicked ? 0.6 : 1,
+                  cursor: isGenerating || !hasPicked ? "not-allowed" : "pointer",
+                }}
                 onClick={exportPaletteImage}
+                disabled={isGenerating || !hasPicked}
               >
                 Export
               </button>
-              <button style={styles.actionBtn} onClick={copyAll}>
+              <button style={{
+                  ...styles.actionBtn,
+                  opacity: !hasPicked ? 0.6 : 1,
+                  cursor: isGenerating || !hasPicked ? "not-allowed" : "pointer",
+                }} 
+                onClick={copyAll}
+                disabled={isGenerating || !hasPicked}
+                >
                 Copy All
               </button>
             </div>
@@ -470,13 +557,13 @@ export default function PaletteGenerator() {
         <footer style={styles.footer} id="about">
           <span>InSnap © 2026</span>
           <span style={styles.footerSep}>|</span>
-          <span>Research Project by D</span>
+          <span>Research Project by Dan Atencia & John Bryan</span>
           <span style={styles.footerSep}>|</span>
-          <span style={styles.footerLink} onClick={() => alert("Paper link here")}>
+          <span style={styles.footerLink} onClick={openPaper}>
             Paper
           </span>
           <span style={styles.footerSep}>|</span>
-          <span style={styles.footerLink} onClick={() => alert("Contact here")}>
+          <span style={styles.footerLink} onClick={openContact}>
             Contact
           </span>
         </footer>
@@ -514,6 +601,29 @@ export default function PaletteGenerator() {
         @media (max-width: 520px) {
           .insnap-fieldrow { flex-direction: column !important; align-items: stretch !important; }
         }
+        
+        /* Dropdown hover */
+        div[style*="cursor: pointer"]:hover {
+          border-color: #2563EB !important;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Dropdown items hover */
+        .insnap-dropdown-item:hover {
+          background: rgba(37, 99, 235, 0.08);
+        }
+
+        @keyframes dropdownSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-8px) scaleY(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0px) scaleY(1);
+          }
+        }
+          
       `}</style>
     </div>
   );
@@ -867,5 +977,56 @@ toastHidden: {
     display: "block",
     margin: "0 auto -12px",
   },
+
+  dropdownWrapper: {
+  position: "relative",
+  minWidth: "230px",
+},
+
+  dropdown: {
+    padding: "12px 14px",
+    borderRadius: "14px",
+    border: "1px solid rgba(35, 36, 39, 0.1)",
+    background: "#FFFFFF",
+    fontWeight: 800,
+    cursor: "pointer",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    transition: "all 0.25s ease",
+  },
+
+  dropdownActive: {
+  
+    boxShadow: "0 0 0 4px rgba(37,99,235,0.25)",
+  },
+
+  dropdownMenu: {
+    position: "absolute",
+    top: "110%",
+    left: 0,
+    right: 0,
+    background: "#FFFFFF",
+    borderRadius: "14px",
+    border: "1px solid rgba(35, 36, 39, 0.1)",
+    boxShadow: "0 14px 30px rgba(15,23,42,0.12)",
+    overflow: "hidden",
+    zIndex: 50,
+    transformOrigin: "top",
+    animation: "dropdownSlide 0.25s ease forwards",
+  },
+
+  dropdownItem: {
+    padding: "12px 14px",
+    cursor: "pointer",
+    fontWeight: 700,
+    transition: "all 0.2s ease",
+  },
+
+  arrow: {
+    fontSize: "12px",
+    opacity: 0.7,
+  },
+  
   
 };

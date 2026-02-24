@@ -53,6 +53,36 @@ code {
   background-color: rgb(17, 63, 104);
 }
 
+.slider {
+  cursor: pointer;
+}
+
+/* Chrome, Safari, Edge */
+.slider::-webkit-slider-thumb {
+  cursor: grab;
+}
+
+/* Firefox */
+.slider::-moz-range-thumb {
+  cursor: grab;
+}
+
+/* IE */
+.slider::-ms-thumb {
+  cursor: grab;
+}
+
+/* Optional: show grabbing when active */
+.slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.slider:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+.slider:active::-ms-thumb {
+  cursor: grabbing;
+}
+
 button:disabled.card:hover,
 button:disabled.card:active {
   transform: none !important;
